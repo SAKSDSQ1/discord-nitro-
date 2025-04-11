@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Nitro Miner 9000</title>
+  <style>
+    body {
+      background-color: #2c2f33;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 30px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      background-color: #7289da;
+      color: white;
+      cursor: pointer;
+      margin: 5px;
+    }
+    input[type="text"], input[type="number"] {
+      padding: 8px;
+      border-radius: 5px;
+      border: none;
+      width: 250px;
+      margin: 5px 0;
+    }
+    .chat-log {
+      background: #23272a;
+      border-radius: 8px;
+      padding: 10px;
+      height: 200px;
+      overflow-y: auto;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+    .log-entry {
+      margin: 5px 0;
+    }
+    .log-time {
+      color: gray;
+      font-size: 12px;
+      margin-right: 6px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎣 Nitro Miner 9000</h1>
+  <p>🧾 Account ID (by IP): <span id="accountId">...</span></p>
+
+  <button onclick="startMining()">Start Mining</button>
+  <div id="result"></div>
+
+  <div style="margin-top:20px;">
+    <label><input type="checkbox" id="autoToggle"> Auto Mining</label>
+    <label style="margin-left: 20px;">⏱ Interval: <input type="number" id="autoInterval" value="5" min="1" max="60" style="width: 60px;">s</label>
+  </div>
+
+  <div style="margin-top:20px;">
+    <h3>🏪 Upgrade Shop</h3>
+    <p>Coins: <span id="coins">0</span></p>
+    <button onclick="upgradeLuck()">Upgrade Luck (+0.2%) - 50 Coins</button>
+    <button onclick="upgradeSpeed()">Upgrade Speed (-0.5s) - 50 Coins</button>
+  </div>
+
+  <div style="margin-top:20px;">
+    <h3>📈 Level Info</h3>
+    <p>Level: <span id="level">1</span> | EXP: <span id="exp">0</span>/<span id="expNeeded">100</span></p>
+  </div>
+
+  <div style="margin-top:20px;">
+    <h3>💬 Log</h3>
+    <div class="chat-log" id="chatLog"></div>
+  </div>
+
+  <script>
+    // Account ID (fake IP-based)
+    document.getElementById("accountId").innerText = "USER-" + btoa(navigator.userAgent + Math.random()).substring(0, 12);
+
+    let coins = 0;
+    let exp = 0;
+    let level = 1;
+    let successChance = 0.3;
+    let miningDelay = 2000;
+    let autoIntervalID = null;
+
+    function expNeeded(level) {
+      return level * 100;
+    }
+
+    function updateUI() {
+      document.getElementById("coins").innerText = coins;
+      document.getElementById("level").innerText = level;
+      document.getElementById("exp").innerText = exp;
+      document.getElementById("expNeeded").innerText = expNeeded(level);
+    }
+
+    function startMining() {
+      const result = document.getElementById("result");
+      result.innerText = "⛏️ Mining...";
+      setTimeout(() => {
+        const success = Math.random() < successChance;
+        if (success) {
+          const code = "discord.gift/" + Math.random().toString(36).substring(2, 16).toUpperCase();
+          result.innerText = `🎉 Nitro code found: ${code}`;
+          coins += 10;
+          addExp(25);
+          logToChat(`🎉 Found Nitro: \`${code}\``);
+        } else {
+          result.innerText = "❌ Mining failed.";
+          addExp(5);
+          logToChat("❌ Mining failed.");
+        }
+        updateUI();
+      }, miningDelay);
+    }
+
+    function addExp(amount) {
+      exp += amount;
+      while (exp >= expNeeded(level)) {
+        exp -= expNeeded(level);
+        level++;
+        logToChat(`🆙 Leveled up! Now level ${level}`);
+      }
+    }
+
+    function upgradeLuck() {
+      if (coins >= 50) {
+        coins -= 50;
+        successChance += 0.002; // +0.2%
+        logToChat(`🍀 Luck upgraded! Success chance: ${(successChance * 100).toFixed(2)}%`);
+        updateUI();
+      } else {
+        alert("Not enough coins!");
+      }
+    }
+
+    function upgradeSpeed() {
+      if (coins >= 50) {
+        coins -= 50;
+        miningDelay = Math.max(500, miningDelay - 500);
+        logToChat(`⚡ Speed upgraded! Mining delay: ${(miningDelay / 1000).toFixed(1)}s`);
+        updateUI();
+      } else {
+        alert("Not enough coins!");
+      }
+    }
+
+    function logToChat(message) {
+      const log = document.getElementById("chatLog");
+      const entry = document.createElement("div");
+      const time = new Date().toLocaleTimeString();
+      entry.className = "log-entry";
+      entry.innerHTML = `<span class="log-time">[${time}]</span> ${message}`;
+      log.appendChild(entry);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    document.getElementById("autoToggle").addEventListener("change", function () {
+      const intervalSec = parseInt(document.getElementById("autoInterval").value) || 5;
+      if (this.checked) {
+        autoIntervalID = setInterval(startMining, intervalSec * 1000);
+      } else {
+        clearInterval(autoIntervalID);
+      }
+    });
+
+    updateUI();
+  </script>
+</body>
+</html>
